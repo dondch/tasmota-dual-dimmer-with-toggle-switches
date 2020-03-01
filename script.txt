@@ -1,0 +1,120 @@
+>D
+sw=0
+sw2=0
+swprev=0
+swprev2=0
+tmp=0
+tmp2=0
+cnt=0
+cnt2=0
+tmr=0
+tmr2=0
+powert=0
+powert2=0
+slider=0
+slider2=0
+dim=""
+shortprl=2 ;short press lo limit
+shortpru=10;short press up limit
+dimdir=0   ;dim direction 0/1
+dimmlp=2.2 ;dim multiplier 1..2.55
+dimstp=2   ;dim step/speed 1..5
+dimll=15   ;dim lower limit min. 0
+dimul=95   ;dim upper limit max. 100
+dimval=70  ;start dim level 0..100
+dimval2=70  ;start dim level 0..100
+
+>B
+=>Counter1 0
+=>Baudrate 9600
+=#senddim2(dimval)
+delay(1000)
+=#senddim2(0)
+
+>F
+cnt=pc[1]
+if chg[cnt]>0
+then
+sw=1
+else
+sw=0
+endif
+
+cnt2=pc[2]
+if chg[cnt2]>0
+then
+sw2=1
+else
+sw2=0
+endif
+tmr+=1
+if swprev!=sw
+then
+swprev=sw
+powert^=1
+if powert==1
+then
+=#senddim(dimval)
+else
+=#senddim(0)
+endif
+endif
+tmr2+=1
+if swprev2!=sw2
+then
+swprev2=sw2
+powert2^=1
+if powert2==1
+then
+=#senddim2(dimval2)
+else
+=#senddim2(0)
+endif
+endif
+>E
+slider=Channel1
+if chg[slider]>0
+then
+if slider>0
+then
+dimval=slider
+else
+powert=0
+endif
+endif
+slider2=Channel2
+if chg[slider2]>0
+then
+if slider2>0
+then
+dimval2=slider2
+else
+powert2=0
+endif
+endif
+if pwr[1]==1
+then
+powert=1
+=#senddim(dimval)
+else
+powert=0
+=#senddim(0)
+endif
+if pwr[2]==1
+then
+powert2=1
+=#senddim2(dimval2)
+else
+powert2=0
+=#senddim2(0)
+endif
+#senddim(tmp)
+dim="FF5501"+hn(tmp*dimmlp)+"0000000A"
+=>SerialSend5 %dim%
+=>Channel1 %tmp%
+#
+#senddim2(tmp2)
+dim="FF550200"+hn(tmp2*dimmlp)+"00000A"
+=>SerialSend5 %dim%
+=>Channel2 %tmp2%
+#
